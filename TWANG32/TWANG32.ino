@@ -1,6 +1,6 @@
 /*
-	TWANG32 - An ESP32 port of TWANG
-	(c) B. Dring 3/2018
+	nanoTWANG32 - An Arduino Nano BLE port of TWANG
+	(c) S. Schmidtke, M. Koenig-Schulz 1/2024
 	License: Creative Commons 4.0 Attribution - Share Alike	
 	
 	TWANG was originally created by Critters
@@ -22,8 +22,10 @@
 		- Use Serial port or Wifi to set your strip length.
 
   Tags:
-    - //nanoport - removed due to dependency to obsolete hardware/feature
-    - //mfr - marked for removal
+    - //nanoport  -   removed due to dependency to obsolete hardware/feature
+    - //mfr       -   marked for removal
+    - //vl        -   verify later
+    - //TODO      - 
 */
 
 //
@@ -98,7 +100,7 @@ iSin isin = iSin();
 
 //#define JOYSTICK_DEBUG  // comment out to stop serial debugging
 
-// POOLS
+// POOLS //vl
 #define LIFE_LEDS 3
 int lifeLEDs[LIFE_LEDS] = { 7, 6, 5 };  // these numbers are Arduino GPIO numbers...this is not used in the B. Dring enclosure design
 
