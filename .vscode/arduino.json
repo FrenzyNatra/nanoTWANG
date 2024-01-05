@@ -1,0 +1,6 @@
+{
+    "board": "arduino:mbed_nano:nano33ble",
+    "programmer": "jlink",
+    "port": "/dev/ttyACM0",
+    "sketch": "TWANG32/TWANG32.ino"
+}

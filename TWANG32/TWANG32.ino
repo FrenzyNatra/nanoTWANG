@@ -34,10 +34,11 @@
 #include <Wire.h>
 #include "Arduino.h"
 #include "RunningMedian.h"
+#include <Arduino_LSM9DS1.h>  //nano BLE IMU acceleration sensor
 
 // twang files
 #include "config.h"
-#include "twang_mpu.h"  //TODO: adapt naming to reflect present hw (IMU)
+//nanoport #include "twang_mpu.h"  //TODO: adapt naming to reflect present hw (IMU)
 #include "Enemy.h"
 #include "Particle.h"
 #include "Spawner.h"
@@ -201,7 +202,12 @@ void setup() {
   settings_init();  // load the user settings from EEPROM
 
   Wire.begin();
-  accelgyro.initialize();
+  
+  if (!IMU.begin()) {
+    Serial.println("Failed to initialize IMU!");
+    while (1);
+  }
+  //nanoport accelgyro.initialize();
 
 #ifdef USE_NEOPIXEL
   Serial.print("\r\nCompiled for WS2812B (Neopixel) LEDs");
@@ -1123,9 +1129,13 @@ void getInput() {
   int16_t ax, ay, az;
   int16_t gx, gy, gz;
 
-  accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
+  //nanoport accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz);
 
-
+  if(IMU.accelerationAvailable() && IMU.gyroscopeAvailable()){
+    IMU.readAcceleration(ax,ay,az);
+    IMU.readGyroscope(gx,gy,gz);
+  }
+  
 
   int a = (JOYSTICK_ORIENTATION == 0 ? ax : (JOYSTICK_ORIENTATION == 1 ? ay : az)) / 166;
   int g = (JOYSTICK_ORIENTATION == 0 ? gx : (JOYSTICK_ORIENTATION == 1 ? gy : gz));

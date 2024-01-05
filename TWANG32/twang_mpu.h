@@ -1,3 +1,4 @@
+
 // A very simple implementation of the MPU-6050 limited to the 
 // TWANG requirements
 // I reused the function names to make it compatible
@@ -11,12 +12,15 @@ class Twang_MPU
 	  void getMotion6(int16_t* xAccel, int16_t* yAccel, int16_t* zAccel, int16_t* xGyro, int16_t* yGyro, int16_t* zGyro);
 	  bool verify();
 
-  private:
+/*	//nanoport
+ private:
 	  static const uint8_t MPU_ADDR = 0x68;
 	  static const uint8_t PWR_MGMT_1 = 0x6B;
 	  static const uint8_t MPU_DATA_REG_START = 0x3B;
 	  static const uint8_t MPU_DATA_LEN = 14;	
 		static const uint8_t MPU_DATA_WHO_AM_I = 0x75;
+*/
+ 
 		
 };
 
