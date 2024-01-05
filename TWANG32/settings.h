@@ -9,7 +9,7 @@
 // change this whenever the saved settings are not compatible with a change
 // It forces a reset from defaults.
 #define SETTINGS_VERSION 2 
-#define EEPROM_SIZE				   256
+//nanoport #define EEPROM_SIZE				   256
 
 // LEDS
 #define NUM_LEDS        144
@@ -58,8 +58,8 @@ enum ErrorNums{
 
 // Function prototypes
 //void reset_settings();
-void settings_init();
-void show_game_stats();
+//nanoport void settings_init();
+//nanoport void show_game_stats();
 void settings_eeprom_write();
 void settings_eeprom_read();
 void change_setting_serial(char *line);
@@ -95,6 +95,7 @@ typedef struct {
 
 settings_t user_settings;
 
+/* //nanoport
 #define READ_BUFFER_LEN 10
 #define CARRIAGE_RETURN 13
 char readBuffer[READ_BUFFER_LEN];
@@ -106,6 +107,8 @@ void settings_init() {
 	show_settings_menu();	
 	show_game_stats();
 }
+*/
+
 
 void checkSerialInput() {
 	if (Serial.available()) {
@@ -218,33 +221,33 @@ void change_setting(char paramCode, uint16_t newValue)
 		
 		case 'C': // LED Count
 				user_settings.led_count = constrain(newValue, MIN_LEDS, MAX_LEDS);
-				settings_eeprom_write();
+				//nanoport settings_eeprom_write();
 		break;	
 			
 		case 'B': // brightness
 			user_settings.led_brightness = constrain(newValue, MIN_BRIGHTNESS, MAX_BRIGHTNESS);
 			FastLED.setBrightness(user_settings.led_brightness);
-			settings_eeprom_write();			
+			//nanoport settings_eeprom_write();			
 		break;
 		
 		case 'S': // sound
 			user_settings.audio_volume = constrain(newValue, MIN_VOLUME, MAX_VOLUME);
-			settings_eeprom_write();
+			//nanoport settings_eeprom_write();
 		break;
 		
 		case 'D': // deadzone, joystick
 			user_settings.joystick_deadzone = constrain(newValue, MIN_JOYSTICK_DEADZONE, MAX_JOYSTICK_DEADZONE);
-			settings_eeprom_write();		
+			//nanoport settings_eeprom_write();		
 		break;
 		
 		case 'A': // attack threshold, joystick
 			user_settings.attack_threshold = constrain(newValue, MIN_ATTACK_THRESHOLD, MAX_ATTACK_THRESHOLD);
-			settings_eeprom_write();
+			//nanoport settings_eeprom_write();
 		break;
 		
 		case 'L': // lives per level
 			user_settings.lives_per_level = constrain(newValue, MIN_LIVES_PER_LEVEL, MAX_LIVES_PER_LEVEL);
-			settings_eeprom_write();
+			//nanoport settings_eeprom_write();
 		break;	
 		
 		default:
@@ -255,7 +258,7 @@ void change_setting(char paramCode, uint16_t newValue)
 	
   } 
 	
-	show_settings_menu();
+	//nanoport show_settings_menu();
 	
 }
 
@@ -270,7 +273,7 @@ void reset_settings() {
 	user_settings.joystick_deadzone = DEFAULT_JOYSTICK_DEADZONE;
 	user_settings.attack_threshold = DEFAULT_ATTACK_THRESHOLD;
 	
-	user_settings.audio_volume = DEFAULT_VOLUME;
+	//nanoport user_settings.audio_volume = DEFAULT_VOLUME;
 	
 	user_settings.lives_per_level = LIVES_PER_LEVEL;
 	
@@ -281,7 +284,7 @@ void reset_settings() {
 	
 	Serial.println("Settings reset...");
 	
-	settings_eeprom_write();	
+	//nanoport settings_eeprom_write();	
 }
 
 void show_settings_menu() {
@@ -302,9 +305,12 @@ void show_settings_menu() {
 	Serial.print(user_settings.led_brightness);
 	Serial.println(" (LED Brightness 5-255)");
 	
+	/* //nanoport
 	Serial.print("S=");
 	Serial.print(user_settings.audio_volume);
 	Serial.println(" (Sound Volume 0-255)");
+	*/
+	
 	
 	Serial.print("D=");
 	Serial.print(user_settings.joystick_deadzone);
@@ -324,68 +330,71 @@ void show_settings_menu() {
 	Serial.println("  P to reset play statistics)");
 }
 
-void show_game_stats()
-{
-	Serial.println("\r\n===== Play statistics ======");
-	Serial.print("Games played: ");Serial.println(user_settings.games_played);
-	if (user_settings.games_played > 0)	{
-		Serial.print("Average Score: ");Serial.println(user_settings.total_points / user_settings.games_played);
+
+/*	//nanoport nano BLE has no (regular) data persistence functionality
+	void show_game_stats()
+	{
+		Serial.println("\r\n===== Play statistics ======");
+		Serial.print("Games played: ");Serial.println(user_settings.games_played);
+		if (user_settings.games_played > 0)	{
+			Serial.print("Average Score: ");Serial.println(user_settings.total_points / user_settings.games_played);
+		}
+		Serial.print("High Score: ");Serial.println(user_settings.high_score);
+		Serial.print("Boss kills: ");Serial.println(user_settings.boss_kills);	
 	}
-	Serial.print("High Score: ");Serial.println(user_settings.high_score);
-	Serial.print("Boss kills: ");Serial.println(user_settings.boss_kills);	
-}
 
-void settings_eeprom_read()	{
+	void settings_eeprom_read()	{
 
-	EEPROM.begin(EEPROM_SIZE);
-	
-	uint8_t ver = EEPROM.read(0);
-	uint8_t temp[sizeof(user_settings)];
+		EEPROM.begin(EEPROM_SIZE);
+		
+		uint8_t ver = EEPROM.read(0);
+		uint8_t temp[sizeof(user_settings)];
 
-	if (ver != SETTINGS_VERSION) {
-		Serial.print("Error: EEPROM settings read failed:"); Serial.println(ver);
-		Serial.println("Loading defaults...");
+		if (ver != SETTINGS_VERSION) {
+			Serial.print("Error: EEPROM settings read failed:"); Serial.println(ver);
+			Serial.println("Loading defaults...");
+			EEPROM.end();
+			reset_settings();		
+			return;
+		}		
+		else {		
+			Serial.print("Settings version: "); Serial.println(ver);		
+		}	
+		
+		for (int i=0; i<sizeof(user_settings); i++)
+		{
+			temp[i] = EEPROM.read(i);
+		}
+		
 		EEPROM.end();
-		reset_settings();		
-		return;
-	}		
-	else {		
-		Serial.print("Settings version: "); Serial.println(ver);		
-	}	
-	
-	for (int i=0; i<sizeof(user_settings); i++)
-	{
-		temp[i] = EEPROM.read(i);
+		
+		memcpy((char*)&user_settings, temp, sizeof(user_settings));	
+		
+		
+		
 	}
-	
-	EEPROM.end();
-	
-	memcpy((char*)&user_settings, temp, sizeof(user_settings));	
-	
-	
-	
-}
 
-void settings_eeprom_write() {		
+	void settings_eeprom_write() {		
 
-	sound_pause(); // prevent interrupt from causing crash	
+		sound_pause(); // prevent interrupt from causing crash	
 
-	EEPROM.begin(EEPROM_SIZE);
-	
-	uint8_t temp[sizeof(user_settings)];	
-	memcpy(temp, (uint8_t*)&user_settings, sizeof(user_settings));  	
-	
-	for (int i=0; i<sizeof(user_settings); i++)
-	{
-		EEPROM.write(i, temp[i]);
-	}			
-	
-	EEPROM.commit();	
-	EEPROM.end();
-	
-	sound_resume(); // restore sound interrupt
-	
-}
+		EEPROM.begin(EEPROM_SIZE);
+		
+		uint8_t temp[sizeof(user_settings)];	
+		memcpy(temp, (uint8_t*)&user_settings, sizeof(user_settings));  	
+		
+		for (int i=0; i<sizeof(user_settings); i++)
+		{
+			EEPROM.write(i, temp[i]);
+		}			
+		
+		EEPROM.commit();	
+		EEPROM.end();
+		
+		sound_resume(); // restore sound interrupt
+		
+	}
+*/
 
 void printError(int reason) {
 	
