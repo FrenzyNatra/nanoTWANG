@@ -1,8 +1,8 @@
 #ifndef SETTINGS_H
 	#define SETTINGS_H
 
-#include <EEPROM.h>
-#include "sound.h"
+//#include <EEPROM.h>
+//#include "sound.h"
 
 // Version 2 adds the number of LEDs
 
@@ -40,18 +40,18 @@ const uint8_t LIVES_PER_LEVEL = 3;      // default lives per level
 #define MAX_JOYSTICK_DEADZONE 12
 
 // AUDIO
-#define DEFAULT_VOLUME          20     // 0 to 255
-#define MIN_VOLUME							0
-#define MAX_VOLUME							255
+//#define DEFAULT_VOLUME          20     // 0 to 255
+//#define MIN_VOLUME							0
+//#define MAX_VOLUME							255
 
-#define DAC_AUDIO_PIN 		25     // should be 25 or 26 only
+//#define DAC_AUDIO_PIN 		25     // should be 25 or 26 only
 
 enum ErrorNums{
 	ERR_SETTING_NUM,
 	ERR_SETTING_RANGE
 };
 
-long lastInputTime = 0;
+//long lastInputTime = 0;
 
 
 //TODO ... move all the settings to this file.
@@ -81,15 +81,15 @@ typedef struct {
 	uint8_t joystick_deadzone;
 	uint16_t attack_threshold;
 	
-	uint8_t audio_volume;
+	//uint8_t audio_volume;
 	
 	uint8_t lives_per_level;	
 	
 	// saved statistics
-	uint16_t games_played;
-	uint32_t total_points;
-	uint16_t high_score;
-	uint16_t boss_kills;
+	//uint16_t games_played;
+	//uint32_t total_points;
+	//uint16_t high_score;
+	//uint16_t boss_kills;
 	
 }settings_t;
 
@@ -113,57 +113,57 @@ void checkSerialInput() {
 	}
 }
 
-void processSerial(char inChar)
-{
-	readBuffer[readIndex] = inChar;
-		switch(readBuffer[readIndex]){
-			case '?':
-				readIndex = 0;
-				show_game_stats();
-				show_settings_menu();
-				return;
-			break;
+// void processSerial(char inChar)
+// {
+// 	readBuffer[readIndex] = inChar;
+// 		switch(readBuffer[readIndex]){
+// 			case '?':
+// 				readIndex = 0;
+// 				show_game_stats();
+// 				show_settings_menu();
+// 				return;
+// 			break;
 			
-			case 'R':
-				readIndex = 0;
-				reset_settings();
-				settings_eeprom_write();
-				return;
-			break;
+// 			case 'R':
+// 				readIndex = 0;
+// 				reset_settings();
+// 				settings_eeprom_write();
+// 				return;
+// 			break;
 			
-			case 'P':
-				user_settings.games_played = 0;
-				user_settings.total_points = 0;
-				user_settings.high_score = 0;	
-				user_settings.boss_kills = 0;
-				settings_eeprom_write();
-				return;
-			break;		
+// 			case 'P':
+// 				user_settings.games_played = 0;
+// 				user_settings.total_points = 0;
+// 				user_settings.high_score = 0;	
+// 				user_settings.boss_kills = 0;
+// 				settings_eeprom_write();
+// 				return;
+// 			break;		
 			
-			case '!':
-				ESP.restart();			
-			default:
+// 			case '!':
+// 				ESP.restart();			
+// 			default:
 			
-			break;
-		}
+// 			break;
+// 		}
 		
-		if (readBuffer[readIndex] == CARRIAGE_RETURN) {
-			if (readIndex < 3) {
-				// not enough characters
-				readIndex = 0;
-			}
-			else {				
-				readBuffer[readIndex] = 0; // mark it as the end of the string
-				change_setting_serial(readBuffer);	
-				readIndex = 0;
-			}
-		}
-		else if (readIndex >= READ_BUFFER_LEN) {
-			readIndex = 0; // too many characters. Reset and try again
-		}
-		else
-			readIndex++;
-}
+// 		if (readBuffer[readIndex] == CARRIAGE_RETURN) {
+// 			if (readIndex < 3) {
+// 				// not enough characters
+// 				readIndex = 0;
+// 			}
+// 			else {				
+// 				readBuffer[readIndex] = 0; // mark it as the end of the string
+// 				change_setting_serial(readBuffer);	
+// 				readIndex = 0;
+// 			}
+// 		}
+// 		else if (readIndex >= READ_BUFFER_LEN) {
+// 			readIndex = 0; // too many characters. Reset and try again
+// 		}
+// 		else
+// 			readIndex++;
+// }
 
 void change_setting_serial(char *line) {
   // line formate should be ss=nn
