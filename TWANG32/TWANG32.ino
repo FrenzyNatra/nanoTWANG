@@ -32,11 +32,13 @@
 
 #define VERSION "2018-06-28"  //TODO: update
 
-#include <FastLED.h>
-#include <Wire.h>
+#include <Adafruit_NeoPixel.h>
+//#include <rp2040_pio.h>
+//nanoport #include <FastLED.h>
+//#include <Wire.h>
 #include "Arduino.h"
 #include "RunningMedian.h"
-#include <Arduino_LSM9DS1.h>  //nano BLE IMU acceleration sensor
+#include "Arduino_LSM9DS1.h"  //nano BLE IMU acceleration sensor
 
 // twang files
 #include "config.h"
@@ -92,8 +94,9 @@ bool attacking = 0;          // Is the attack in progress?
 #define WIN_CLEAR_DURATION 1000
 #define WIN_OFF_DURATION 1200
 
-Twang_MPU accelgyro = Twang_MPU();
-CRGB leds[VIRTUAL_LED_COUNT];
+//nanoport Twang_MPU accelgyro = Twang_MPU();
+//nanoport CRGB leds[VIRTUAL_LED_COUNT];
+Adafruit_NeoPixel strip(VIRTUAL_LED_COUNT, DATA_PIN, NEO_GRB + NEO_KHZ800);  //TODO make configurable
 RunningMedian MPUAngleSamples = RunningMedian(5);
 RunningMedian MPUWobbleSamples = RunningMedian(5);
 iSin isin = iSin();
@@ -188,7 +191,8 @@ void FastLEDshowTask(void *pvParameters) {
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
     // -- Do the show (synchronously)
-    FastLED.show();
+    //nanoport FastLED.show();
+    pixels.begin();
 
     // -- Notify the calling task
     xTaskNotifyGive(userTaskHandle);
@@ -213,21 +217,25 @@ void setup() {
 
 #ifdef USE_NEOPIXEL
   Serial.print("\r\nCompiled for WS2812B (Neopixel) LEDs");
-  FastLED.addLeds<LED_TYPE, DATA_PIN>(leds, MAX_LEDS);
+  //nanoport FastLED.addLeds<LED_TYPE, DATA_PIN>(leds, MAX_LEDS);
+
 #endif
 
+/* //nanoport
 #ifdef USE_APA102
   Serial.print("\r\nCompiled for APA102 (Dotstar) LEDs");
   FastLED.addLeds<LED_TYPE, DATA_PIN, CLOCK_PIN, LED_COLOR_ORDER>(leds, MAX_LEDS);
 #endif
+*/
 
-  FastLED.setBrightness(user_settings.led_brightness);
-  FastLED.setDither(1);
+
+  strip.setBrightness(user_settings.led_brightness);
+  //nanoport strip.setDither(1);    <- unfortunately not implemented (yet?)
 
   // -- Create the ESP32 FastLED show task
   xTaskCreatePinnedToCore(FastLEDshowTask, "FastLEDshowTask", 2048, NULL, 2, &FastLEDshowTaskHandle, FASTLED_SHOW_CORE);
 
-  sound_init(DAC_AUDIO_PIN);
+  //nanoport sound_init(DAC_AUDIO_PIN);
 
   ap_setup();
 
@@ -325,7 +333,8 @@ void loop() {
       }
 
       // Ticks and draw calls
-      FastLED.clear();
+      //nanoport FastLED.clear();
+      strip.clear();
       tickConveyors();
       tickSpawners();
       tickBoss();
@@ -336,7 +345,8 @@ void loop() {
       drawExit();
     } else if (stage == DEAD) {
       // DEAD
-      FastLED.clear();
+      //nanoport FastLED.clear();
+      strip.clear();
       tickDie(mm);
       if (!tickParticles()) {
         loadLevel();
@@ -350,7 +360,8 @@ void loop() {
       if (stageStartTime + GAMEOVER_FADE_DURATION > mm) {
         tickGameover(mm);
       } else {
-        FastLED.clear();
+        //nanoport FastLED.clear();
+        strip.clear();
         //nanoport save_game_stats(false);    // boss not killed
 
         // restart from the beginning
@@ -370,7 +381,7 @@ void loop() {
 // ---------------------------------
 void loadLevel() {
   // leave these alone
-  FastLED.setBrightness(user_settings.led_brightness);
+  strip.setBrightness(user_settings.led_brightness);
   updateLives();
   cleanupLevel();
   playerAlive = 1;
@@ -688,21 +699,24 @@ void die() {
 // -------- TICKS & RENDERS ---------
 // ----------------------------------
 void tickStartup(long mm) {
-  FastLED.clear();
+  strip.clear();
   if (stageStartTime + STARTUP_WIPEUP_DUR > mm)  // fill to the top with green
   {
     int n = _min(map(((mm - stageStartTime)), 0, STARTUP_WIPEUP_DUR, 0, user_settings.led_count), user_settings.led_count);  // fill from top to bottom
     for (int i = 0; i <= n; i++) {
-      leds[i] = CRGB(0, 255, 0);
+      //nanoport leds[i] = CRGB(0, 255, 0);
+      strip.setPixelColor(i, strip.Color(0, 255, 0));
     }
   } else if (stageStartTime + STARTUP_SPARKLE_DUR > mm)  // sparkle the full green bar
   {
     for (int i = 0; i < user_settings.led_count; i++) {
       if (random8(30) < 28)
-        leds[i] = CRGB(0, 255, 0);  // most are green
+        //nanoport leds[i] = CRGB(0, 255, 0);  // most are green
+        strip.setPixelColor(i, strip.Color(0, 255, 0));
       else {
         int flicker = random8(250);
-        leds[i] = CRGB(flicker, 150, flicker);  // some flicker brighter
+        //nanoport leds[i] = CRGB(flicker, 150, flicker);  // some flicker brighter
+        strip.setPixelColor(i, strip.Color(flicker, 150, flicker));
       }
     }
 
@@ -716,7 +730,9 @@ void tickStartup(long mm) {
     // }
     for (int i = n; i < user_settings.led_count; i++) {
 
-      leds[i] = CRGB(0, brightness, 0);
+      //nanoport leds[i] = CRGB(0, brightness, 0);
+      strip.setPixelColor(i, strip.Color(0, brightness, 0));
+      
     }
   }
   SFXFreqSweepWarble(STARTUP_FADE_DUR, millis() - stageStartTime, 40, 400, 20);
@@ -739,7 +755,8 @@ void tickEnemies() {
       }
       // Draw (if still alive)
       if (enemyPool[i].Alive()) {
-        leds[getLED(enemyPool[i]._pos)] = CRGB(255, 0, 0);
+        //nanoport leds[getLED(enemyPool[i]._pos)] = CRGB(255, 0, 0);
+        strip.setPixelColor(getLED(enemyPool[i]._pos), strip.Color(255, 0, 0));
       }
       // Hit player?
       if (
@@ -756,8 +773,10 @@ void tickBoss() {
   if (boss.Alive()) {
     boss._ticks++;
     for (int i = getLED(boss._pos - BOSS_WIDTH / 2); i <= getLED(boss._pos + BOSS_WIDTH / 2); i++) {
-      leds[i] = CRGB::DarkRed;
-      leds[i] %= 100;
+      //nanoport leds[i] = CRGB::DarkRed;
+      strip.setPixelColor(i, strip.Color(139, 0, 0));  // DarkRed according to W3C (https://www.w3.org/TR/css-color-3/#rgb-color)
+      //nanoport leds[i] %= 100;
+      strip.setPixelColor(i, i %= 100);
     }
     // CHECK COLLISION
     if (getLED(playerPosition) > getLED(boss._pos - BOSS_WIDTH / 2) && getLED(playerPosition) < getLED(boss._pos + BOSS_WIDTH)) {
